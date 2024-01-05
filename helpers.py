@@ -337,6 +337,7 @@ def print_family_tree_structure(gen_dict, full=False):
             for dog in gen_dict[gen]:
                 print_dog(dog, full)
 
+
 def print_dog(dog, full=False):
     print(f"    {dog['Name']}")
     print(f"      Sex: {dog['Sex']}")
@@ -360,15 +361,14 @@ def test_family_tree_structure(family_tree_structure,
                                mother, father,
                                offspring_1, offspring_2):
     try:
-        if not \
-         family_tree_structure[0][0][0]['Name'] == maternal_grandmother['Name'] and \
-         family_tree_structure[0][0][1]['Name'] == maternal_grandfather['Name'] and \
-         family_tree_structure[0][1][0]['Name'] == fraternal_grandmother['Name'] and \
-         family_tree_structure[0][1][1]['Name'] == fraternal_grandfather['Name'] and \
-         family_tree_structure[1][0][0]['Name'] == mother['Name'] and \
-         family_tree_structure[1][0][1]['Name'] == father['Name'] and \
-         family_tree_structure[2][0]['Name'] == offspring_1['Name'] and \
-         family_tree_structure[2][1]['Name'] == offspring_2['Name']:
+        if any((family_tree_structure[0][1][1]['Name'] != maternal_grandmother['Name'],
+         family_tree_structure[0][1][0]['Name'] != maternal_grandfather['Name'],
+         family_tree_structure[0][0][1]['Name'] != fraternal_grandmother['Name'],
+         family_tree_structure[0][0][0]['Name'] != fraternal_grandfather['Name'],
+         family_tree_structure[1][0][1]['Name'] != mother['Name'],
+         family_tree_structure[1][0][0]['Name'] != father['Name'],
+         sorted([family_tree_structure[2][0]['Name'], family_tree_structure[2][1]['Name']]) != sorted([offspring_1['Name'], offspring_2['Name']])
+         )):
             print("Family tree structure is incorrect")
             print("Failed when checking the names of the dogs")
             return
@@ -399,22 +399,22 @@ def test_family_tree_structure(family_tree_structure,
             print("Failed when checking the parents of the offspring")
             print("Ensure the offspring's parents are stored in a tuple")
             return
-        elif sorted(family_tree_structure[1][0][0]['Parents']) != sorted(maternal_grandmother['Name'], maternal_grandfather['Name']):
+        elif sorted(family_tree_structure[1][0][1]['Parents']) != sorted((maternal_grandmother['Name'], maternal_grandfather['Name'])):
             print("Family tree structure is incorrect")
             print("Failed when checking the parents of the mother")
             print("Ensure the mother's parents are the maternal grandmother and maternal grandfather")
             return
-        elif sorted(family_tree_structure[1][0][1]['Parents']) != sorted(fraternal_grandmother['Name'], fraternal_grandfather['Name']):
+        elif sorted(family_tree_structure[1][0][0]['Parents']) != sorted((fraternal_grandmother['Name'], fraternal_grandfather['Name'])):
             print("Family tree structure is incorrect")
             print("Failed when checking the parents of the mother")
             print("Ensure the mother's parents are the maternal grandmother and maternal grandfather")
             return
-        elif sorted(family_tree_structure[2][0]['Parents']) != sorted(mother['Name'], father['Name']):
+        elif sorted(family_tree_structure[2][0]['Parents']) != sorted(offspring_1['Parents']):
             print("Family tree structure is incorrect")
             print("Failed when checking the parents of the offspring")
             print("Ensure the offspring's parents are the mother and father")
             return
-        elif sorted(family_tree_structure[2][1]['Parents']) != sorted(mother['Name'], father['Name']):
+        elif sorted(family_tree_structure[2][1]['Parents']) != sorted(offspring_2['Parents']):
             print("Family tree structure is incorrect")
             print("Failed when checking the parents of the offspring")
             print("Ensure the offspring's parents are the mother and father")
@@ -533,42 +533,52 @@ def test_family_tree_structure(family_tree_structure,
             print("Failed when checking the tricks of the offspring")
             print("Ensure the offspring's tricks are stored in a set")
             return
-        elif family_tree_structure[0][0][0]['Tricks'] - maternal_grandmother['Tricks'] != set():
+        elif family_tree_structure[0][1][1]['Tricks'] - maternal_grandmother['Tricks'] != set():
             print("Family tree structure is incorrect")
             print("Failed when checking the tricks of the maternal grandmother")
             print("Ensure the maternal grandmother's tricks are correct")
             return
-        elif family_tree_structure[0][0][1]['Tricks'] - maternal_grandfather['Tricks'] != set():
+        elif family_tree_structure[0][1][0]['Tricks'] - maternal_grandfather['Tricks'] != set():
             print("Family tree structure is incorrect")
             print("Failed when checking the tricks of the maternal grandfather")
             print("Ensure the maternal grandfather's tricks are correct")
             return
-        elif family_tree_structure[0][1][0]['Tricks'] - fraternal_grandmother['Tricks'] != set():
+        elif family_tree_structure[0][0][1]['Tricks'] - fraternal_grandmother['Tricks'] != set():
             print("Family tree structure is incorrect")
             print("Failed when checking the tricks of the fraternal grandmother")
             print("Ensure the fraternal grandmother's tricks are correct")
             return
-        elif family_tree_structure[0][1][1]['Tricks'] - fraternal_grandfather['Tricks'] != set():
+        elif family_tree_structure[0][0][0]['Tricks'] - fraternal_grandfather['Tricks'] != set():
             print("Family tree structure is incorrect")
             print("Failed when checking the tricks of the fraternal grandfather")
             print("Ensure the fraternal grandfather's tricks are correct")
             return
-        elif family_tree_structure[1][0][0]['Tricks'] - mother['Tricks'] != set():
+        elif family_tree_structure[1][0][1]['Tricks'] - mother['Tricks'] != set():
             print("Family tree structure is incorrect")
             print("Failed when checking the tricks of the mother")
             print("Ensure the mother's tricks are correct")
             return
-        elif family_tree_structure[1][0][1]['Tricks'] - father['Tricks'] != set():
+        elif family_tree_structure[1][0][0]['Tricks'] - father['Tricks'] != set():
             print("Family tree structure is incorrect")
             print("Failed when checking the tricks of the father")
             print("Ensure the father's tricks are correct")
             return
-        elif family_tree_structure[2][0]['Tricks'] - offspring_1['Tricks'] != set():
+        elif offspring_1['Tricks'] == offspring_2['Tricks'] and family_tree_structure[2][0] != family_tree_structure[2][1]:
             print("Family tree structure is incorrect")
             print("Failed when checking the tricks of the offspring")
             print("Ensure the offspring's tricks are correct")
             return
-        elif family_tree_structure[2][1]['Tricks'] - offspring_2['Tricks'] != set():
+        elif offspring_1['Tricks'] != offspring_2['Tricks'] and family_tree_structure[2][0] == family_tree_structure[2][1]:
+            print("Family tree structure is incorrect")
+            print("Failed when checking the tricks of the offspring")
+            print("Ensure the offspring's tricks are correct")
+            return
+        elif not any((family_tree_structure[2][0]['Tricks'] - offspring_1['Tricks'] == set(), family_tree_structure[2][1]['Tricks'] - offspring_1['Tricks'] == set())):
+            print("Family tree structure is incorrect")
+            print("Failed when checking the tricks of the offspring")
+            print("Ensure the offspring's tricks are correct")
+            return
+        elif not any((family_tree_structure[2][1]['Tricks'] - offspring_2['Tricks'] == set(), family_tree_structure[2][0]['Tricks'] - offspring_2['Tricks'] == set())):
             print("Family tree structure is incorrect")
             print("Failed when checking the tricks of the offspring")
             print("Ensure the offspring's tricks are correct")
@@ -578,3 +588,6 @@ def test_family_tree_structure(family_tree_structure,
     except KeyError:
         print("Ensure your dict uses `Tricks` as the key for the dog's tricks")
         return
+    
+
+    print("All tests passed!")
