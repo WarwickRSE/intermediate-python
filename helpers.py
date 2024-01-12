@@ -588,6 +588,19 @@ def test_family_tree_structure(family_tree_structure,
     except KeyError:
         print("Ensure your dict uses `Tricks` as the key for the dog's tricks")
         return
-    
-
     print("All tests passed!")
+
+
+def test_arg_kwarg_fun(arg_kwarg_fun):
+    try:
+        arg_kwarg_fun(1, 2)
+    except ValueError as e:
+        assert str(e) == str(ValueError('c must be set')), 'Test 1 failed'
+        print('Test 1 passed')
+
+    assert arg_kwarg_fun(1, 2, c=3) == 10, 'Test 2 failed'
+    print('Test 2 passed')
+
+    assert arg_kwarg_fun(1, 2, c=3, d=5) == 11, 'Test 3 failed'
+    print('Test 3 passed')
+
