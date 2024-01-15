@@ -1,7 +1,7 @@
-# Create a random family tree of dogs using dictionaries.
-
+import inspect
 from random import choice
 
+# Create a random family tree of dogs using dictionaries.
 # Create a dictionary of dog names and their Parents.
 # We are going to go with an hourglass shape for the family tree.
 # MM-GP-1   MM-GP-2     MF-GP-1    MF-GP-2    FM-GP-1   FM-GP-2    FF-GP-1    FF-GP-2
@@ -604,3 +604,29 @@ def test_arg_kwarg_fun(arg_kwarg_fun):
     assert arg_kwarg_fun(1, 2, c=3, d=5) == 11, 'Test 3 failed'
     print('Test 3 passed')
 
+
+def args_and_kwargs_fun(*args, **kwargs):
+    print(args)
+    print(kwargs)
+    
+
+def challenging_call(function):
+    f_spec = inspect.getfullargspec(function)
+
+    if len(f_spec.args) != 2 or f_spec.kwonlyargs != ['x', 'y']:
+        print('Only 2 positional arguments and 2 keyword arguments are allowed')
+        print('Try Again')
+        return
+
+    try:
+        function(1, 2, 3, 4, x=5, y=6, z=7)
+    except TypeError as e:
+        print(e)
+        if e.args[0] == "challenge_function() got multiple values for argument 'x'":
+            print('Test 1 failed')
+            print('You have \'unconsumed\' positional arguments')
+        if e.args[0] == "challenge_function() got an unexpected keyword argument 'z'":
+            print('Test 2 failed')
+            print('You have \'unconsumed\' keyword arguments')
+
+    print('All Tests passed!')
