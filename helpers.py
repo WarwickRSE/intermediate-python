@@ -1,5 +1,14 @@
 import inspect
+from functools import partial
 from random import choice
+
+import numpy as np
+from python_scripts.n_poly_solution import n_poly
+from python_scripts.fun_solver_solution import fun_solver
+from time import time
+from numba import jit, float64
+from numba.core.errors import NumbaWarning
+import warnings
 
 # Create a random family tree of dogs using dictionaries.
 # Create a dictionary of dog names and their Parents.
@@ -630,3 +639,244 @@ def challenging_call(function):
             print('You have \'unconsumed\' keyword arguments')
 
     print('All Tests passed!')
+
+
+def test_quadratics(q_p3_p3_n6, q_p2_n2_n1, q_generic, partial_q_p3_p3_n6, partial_q_p2_n2_n1):
+    # Define a generic quadratic function and partial it to use for solutions
+    def q_generic(x, a, b, c):
+        return a * x ** 2 + b * x + c
+    _q_p3_p3_n6 = partial(q_generic, a=3, b=3, c=-6)
+    _q_p2_n2_n1 = partial(q_generic, a=2, b=-2, c=-1)
+    _q_p1_n1_n1 = partial(q_generic, a=1, b=-1, c=-1)
+
+    # Assert that the last two arguments are partialled
+    assert type(partial_q_p3_p3_n6) == partial, 'partial_q_p3_p3_n6 is not a partial function'
+    assert type(partial_q_p2_n2_n1) == partial, 'partial_q_p2_n2_n1 is not a partial function'
+
+    for i in range(-10, 10):
+        assert q_p3_p3_n6(i) == _q_p3_p3_n6(i), f'q_p3_p3_n6 failed for input {i}'
+        assert q_p2_n2_n1(i) == _q_p2_n2_n1(i), f'q_p2_n2_n1 failed for input {i}'
+        assert q_generic(i, 1, -1, -1) == _q_p1_n1_n1(i), f'q_generic failed for input {i}'
+        assert partial_q_p3_p3_n6(i) == _q_p3_p3_n6(i), f'partial_q_p3_p3_n6 failed for input {i}'
+        assert partial_q_p2_n2_n1(i) == _q_p2_n2_n1(i), f'partial_q_p2_n2_n1 failed for input {i}'
+
+    print('All tests passed!')
+
+
+from io import StringIO 
+import sys
+
+class Capturing(list):
+    def __enter__(self):
+        self._stdout = sys.stdout
+        sys.stdout = self._stringio = StringIO()
+        return self
+    def __exit__(self, *args):
+        self.extend(self._stringio.getvalue().splitlines())
+        del self._stringio    # free up some memory
+        sys.stdout = self._stdout
+
+def test_wrappers(echo_name, echo_greeting_name, echo_greeting_name_signoff, greeting_wrapper, signoff_wrapper):
+
+    def dummy(*args, **kwargs):
+        pass
+    with Capturing() as output:
+        greeting_wrapper(dummy())
+    assert output == [], 'greeting_wrapper should not print anything when wrapping a function'
+
+    with Capturing() as output:
+        signoff_wrapper(dummy())
+    assert output == [], 'signoff_wrapper should not print anything when wrapping a function'
+
+    with Capturing() as output:
+        echo_name('John')
+    assert output == ['John'], 'echo_name failed for input \'John\''
+    print('echo_name passed!')
+
+    with Capturing() as output:
+        echo_greeting_name('John', 'Hi')
+    assert output == ['Hi, John'], 'echo_greeting_name failed for input \'Hi\' and \'John\''
+    print('echo_greeting_name passed!')
+
+    with Capturing() as output:
+        echo_greeting_name_signoff('John', 'Hi', 'Bye')
+    assert output == ['Hi, John', 'Bye'], 'echo_greeting_name_signoff failed for input \'Hi\', \'John\' and \'Bye\''
+    print('echo_greeting_name_signoff passed!')
+
+    with Capturing() as output:
+        echo_greeting_name('John')
+    assert output == ['Hello, John'], 'echo_greeting_name failed for input \'John\', check your default args'
+    print('echo_greeting_name passed default arg check!')
+
+    with Capturing() as output:
+        echo_greeting_name_signoff('John')
+    assert output == ['Hello, John', 'Goodbye'], 'echo_greeting_name_signoff failed for input \'John\', check your default args'
+    print('echo_greeting_name_signoff passed default arg check!')
+
+    print('All tests passed!')
+
+
+def test_wrappers_refac(echo_name, echo_greeting_name, echo_greeting_name_signoff, greeting_wrapper, signoff_wrapper):
+
+    def dummy(*args, **kwargs):
+        pass
+    with Capturing() as output:
+        greeting_wrapper(dummy())
+    assert output == [], 'greeting_wrapper should not print anything when wrapping a function'
+
+    with Capturing() as output:
+        signoff_wrapper(dummy())
+    assert output == [], 'signoff_wrapper should not print anything when wrapping a function'
+
+    with Capturing() as output:
+        echo_name('John')
+    assert output == ['John'], 'echo_name failed for input \'John\''
+    print('echo_name passed!')
+
+    with Capturing() as output:
+        echo_greeting_name('Hi','John')
+    assert output == ['Hi, John'], 'echo_greeting_name failed for input \'Hi\' and \'John\''
+    print('echo_greeting_name passed!')
+
+    with Capturing() as output:
+        echo_greeting_name_signoff('Hi', 'John', 'Bye')
+    assert output == ['Hi, John', 'Bye'], 'echo_greeting_name_signoff failed for input \'Hi\', \'John\' and \'Bye\''
+    print('echo_greeting_name_signoff passed!')
+
+    with Capturing() as output:
+        echo_greeting_name('John')
+    assert output == ['Hello, John'], 'echo_greeting_name failed for input \'John\', check your default args'
+    print('echo_greeting_name passed default arg check!')
+
+    with Capturing() as output:
+        echo_greeting_name_signoff('John')
+    assert output == ['Hello, John', 'Goodbye'], 'echo_greeting_name_signoff failed for input \'John\', check your default args'
+    print('echo_greeting_name_signoff passed default arg check!')
+
+    print('All tests passed!')
+
+
+def check_n_poly(func):
+
+    # Test 5 orders from 1st to 5th evaluating at x=[-1, 0, 1]
+    test_args = [
+        [-1, 1, 1],
+        [0, 1, 1],
+        [1, 1, 1],  # 1st order
+        [-1, 3, 3, -6],
+        [0, 3, 3, -6],
+        [1, 3, 3, -6],  # 2nd order
+        [-1, -5, 2, -1],
+        [0, -5, 2, -1],
+        [1, -5, 2, -1],  # 3rd order
+        [-1, -2, 2, 0, 2],
+        [0, -2, 2, 0, 2],
+        [1, -2, 2, 0, 2],  # 4th order
+        [-1, -5, 1, 3, 2, -2],
+        [0, -5, 1, 3, 2, -2],
+        [1, -5, 1, 3, 2, -2]  # 5th order
+    ]
+
+    def apply_args(func, args):
+        for i in args:
+            assert func(*i) == n_poly(*i), f'Failed at order {len(i) - 2}\
+                  for input {i}'
+
+    apply_args(func, test_args)
+
+    print('All tests passed!')
+
+
+# Define some functions to test the fun_solver function
+
+# Two quadratic functions one with single root one with two roots
+@jit((float64(float64)), nopython=True)
+def a_quad_jit(x):
+    return x**2 - 1
+
+
+def a_quad(x):
+    return x**2 - 1
+
+
+@jit((float64(float64)), nopython=True)
+def b_quad_jit(x):
+    return x**2 - 2*x + 1
+
+
+def b_quad(x):
+    return x**2 - 2*x + 1
+
+
+# A cubic function with three roots
+@jit((float64(float64)), nopython=True)
+def a_cubic_jit(x):
+    return x**3 - 2*x**2 + x - 1
+
+
+def a_cubic(x):
+    return x**3 - 2*x**2 + x - 1
+
+
+# A pentagonal function with five roots
+@jit((float64(float64)), nopython=True)
+def a_pent_jit(x):
+    return x**5 - 2*x**4 + x**3 - 2*x**2 + x - 1
+
+
+def a_pent(x):
+    return x**5 - 2*x**4 + x**3 - 2*x**2 + x - 1
+
+
+# put all the functions in a list for easy access
+jitted_funs = [a_quad_jit, b_quad_jit, a_cubic_jit, a_pent_jit]
+funs = [a_quad, b_quad, a_cubic, a_pent]
+
+
+def check_fun_solver(func):
+    user_sols = []
+    test_time1 = time()
+    for i in jitted_funs:
+        user_sols.append(func(i, 0.000001))
+    test_time2 = time()
+
+    sol_sols = []
+    time1 = time()
+    for i in jitted_funs:
+        sol_sols.append(fun_solver(i, 0.000001))
+    time2 = time()
+
+    # Check the solutions are correct
+    for i in range(len(user_sols)):
+        assert np.allclose(user_sols[i], sol_sols[i]), f'Failed \
+            for function {i}'
+
+    print("Time taken for jit-ed functions:\n" +
+          f"Your Code: {test_time2 - test_time1}" +
+          f"seconds.\nSolution code: {time2 - time1} seconds.")
+
+    # disable numba warnings to make the output cleaner
+    warnings.simplefilter('ignore', category=NumbaWarning)
+    user_sols = []
+    test_time1 = time()
+    for i in funs:
+        user_sols.append(func(i, 0.000001))
+    test_time2 = time()
+
+    sol_sols = []
+    time1 = time()
+    for i in funs:
+        sol_sols.append(fun_solver(i, 0.000001))
+    time2 = time()
+
+    # Check the solutions are correct
+    for i in range(len(user_sols)):
+        assert np.allclose(user_sols[i], sol_sols[i]), f'Failed \
+            for function {i}'
+    warnings.simplefilter('default', category=NumbaWarning)
+
+    print("Time taken for non-jit functions:\n" +
+          f"Your Code: {test_time2 - test_time1}" +
+          f"seconds.\nSolution code: {time2 - time1} seconds.")
+
+    print('All tests passed!')
