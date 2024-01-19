@@ -1,5 +1,9 @@
 # Add any imports you need here
 from numba import jit
+import warnings
+from numba.core.errors import NumbaWarning
+
+warnings.simplefilter('ignore', category=NumbaWarning)
 
 
 @jit(nopython=False)
@@ -35,3 +39,6 @@ def fun_solver(
             x = x - func(x)/m
         roots.append(x)
     return roots
+
+
+warnings.simplefilter('default', category=NumbaWarning)

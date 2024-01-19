@@ -789,6 +789,7 @@ def check_n_poly(func):
 
 # Define some functions to test the fun_solver function
 
+warnings.simplefilter('ignore', category=NumbaWarning)
 # Two quadratic functions one with single root one with two roots
 @jit((float64(float64)), nopython=True)
 def a_quad_jit(x):
@@ -828,6 +829,7 @@ def a_pent(x):
     return x**5 - 2*x**4 + x**3 - 2*x**2 + x - 1
 
 
+warnings.simplefilter('default', category=NumbaWarning)
 # put all the functions in a list for easy access
 jitted_funs = [a_quad_jit, b_quad_jit, a_cubic_jit, a_pent_jit]
 funs = [a_quad, b_quad, a_cubic, a_pent]
@@ -880,3 +882,84 @@ def check_fun_solver(func):
           f"seconds.\nSolution code: {time2 - time1} seconds.")
 
     print('All tests passed!')
+
+
+# numbered class test functions that build on each other to test the Dog class learners 
+# build in 04
+
+def test_class_constructor_1(Dog):
+    try:
+        dog_class = Dog(name="Milo", owner="Cassandra", age=4, sex="Dog", color="Brown")
+    except TypeError as e:
+        error_list = str(e).split()
+        print(f"Your class is missing {error_list[6]}")
+        # Now throw the error
+        raise e
+    print('Constructor test 1 passed')
+    return dog_class
+
+
+def test_class_attrs_1(dog_class):
+    assert dog_class.name == "Milo", 'Name attribute is incorrect'
+    assert dog_class.owner == "Cassandra", 'Owner attribute is incorrect'
+    assert dog_class.age == 4, 'Age attribute is incorrect'
+    assert dog_class.sex == "Dog", "Sex attribute is incorrect"
+    assert dog_class.color == "Brown", 'Color attribute is incorrect'
+
+    print('Attributes test 1 passed')
+
+
+def test_class_attrs_2(dog_class):
+    test_class_attrs_1(dog_class)
+    try:
+        dog_class.sex = "Female"
+    except AttributeError:
+        print("Your class correctly rejected updating the read only attribute 'Sex'")
+    else:
+        raise AttributeError("Your class allowed updating the read only attribute 'Sex'")
+    try:
+        dog_class.color = "Black"
+    except AttributeError:
+        print("Your class correctly rejected updating the read only attribute 'Color'")
+    else:
+        raise AttributeError("Your class allowed updating the read only attribute 'Color'")
+
+    print('Attributes test 2 passed')
+
+
+def test_class_constructor_2(Dog):
+
+    try:
+        Dog(
+            name="Milo", owner="Cassandra", age=4, sex="Dog", color="Brown",
+            tricks = 'Sit'
+            )
+    except:
+        print("Your class threw an error when a string was passed to the tricks argument")
+        raise e 
+
+    try:
+        dog_class = Dog(
+            name="Milo", owner="Cassandra", age=4, sex="Dog", color="Brown",
+            tricks=['Sit', 'Paw']
+            )
+    except TypeError as e:
+        print("Your class threw an error when a list was passed to the tricks argument")
+        raise e
+
+    print('Constructor test 1 passed')
+    return dog_class 
+
+
+def test_class_attrs_3(dog_class):
+    test_class_attrs_2(dog_class)
+    assert dog_class.tricks == {'Sit', 'Paw'}, 'Tricks attribute is incorrect'
+
+    dog_class.tricks = {'Beg', 'Stay'}
+    assert dog_class.tricks == {'Sit', 'Paw', 'Beg', 'Stay'}, 'Tricks attribute is incorrect'
+    dog_class.tricks = ['Beg', 'Stay']
+    assert dog_class.tricks == {'Sit', 'Paw', 'Beg', 'Stay'}, 'Tricks attribute is incorrect'
+    dog_class.tricks = 'Beg'
+    assert dog_class.tricks == {'Sit', 'Paw', 'Beg', 'Stay'}, 'Tricks attribute is incorrect'
+
+    print('Attributes test 3 passed')
