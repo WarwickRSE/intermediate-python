@@ -9,6 +9,7 @@ from time import time
 from numba import jit, float64
 from numba.core.errors import NumbaWarning
 import warnings
+from datetime import date
 
 # Create a random family tree of dogs using dictionaries.
 # Create a dictionary of dog names and their Parents.
@@ -932,7 +933,7 @@ def test_class_constructor_2(Dog):
     try:
         Dog(
             name="Milo", owner="Cassandra", age=4, sex="Dog", color="Brown",
-            tricks = 'Sit'
+            tricks='Sit'
             )
     except:
         print("Your class threw an error when a string was passed to the tricks argument")
@@ -963,3 +964,171 @@ def test_class_attrs_3(dog_class):
     assert dog_class.tricks == {'Sit', 'Paw', 'Beg', 'Stay'}, 'Tricks attribute is incorrect'
 
     print('Attributes test 3 passed')
+
+
+def test_class_constructor_3(Dog):
+    try:
+        dog_class = Dog(
+        name="Milo", owner="Cassandra", dob="03/04/22", sex="Dog", color="Brown",
+        tricks=['Sit', 'Paw'], date_format='mm/dd/yy'
+        )
+    except TypeError as e:
+        print("Your class threw an error when a dd/mm/yy string was passed to dob argument")
+        raise e
+    try:
+        Dog(
+        name="Milo", owner="Cassandra", dob="03/04/2022", sex="Dog", color="Brown",
+        tricks=['Sit', 'Paw']
+        )
+    except TypeError as e:
+        print("Your class threw an error when a dd/mm/yyyy string was passed to dob argument")
+        raise e
+    try:
+        Dog(
+        name="Milo", owner="Cassandra", dob="03-04-2022", sex="Dog", color="Brown",
+        tricks=['Sit', 'Paw'], date_format='dd-mm-yyyy'
+        )
+    except TypeError as e:
+        print("Your class threw an error when a dd-mm-yyyy string was passed to dob argument")
+        raise e
+    try:
+        Dog(
+        name="Milo", owner="Cassandra", dob="12/24/2022", sex="Dog", color="Brown",
+        tricks=['Sit', 'Paw'], date_format='mm/dd/yyyy'
+        )
+    except TypeError as e:
+        print("Your class threw an error when a mm/dd/yyyy string was passed to dob argument")
+        raise e
+    try:
+        Dog(
+        name="Milo", owner="Cassandra", dob="03/4/2022", sex="Dog", color="Brown",
+        tricks=['Sit', 'Paw']
+        )
+    except AssertionError:
+        print("Your class correctly threw an error when a dd/m/yyyy string was passed to dob argument")
+        pass
+    else:
+        print("Your class failed to throw an error when a dd/m/yyyy string was passed to dob argument")
+    try:
+        Dog(
+        name="Milo", owner="Cassandra", dob="3/4/2022", sex="Dog", color="Brown",
+        tricks=['Sit', 'Paw']
+        )
+    except AssertionError:
+        print("Your class correctly threw an error when a d/m/yyyy string was passed to dob argument")
+        pass
+    else:
+        print("Your class failed to throw an error when a d/m/yyyy string was passed to dob argument")
+    try:
+        Dog(
+        name="Milo", owner="Cassandra", dob="03/04/1993", sex="Dog", color="Brown",
+        tricks=['Sit', 'Paw']
+        )
+    except:
+        print("Your class threw an error when a 19XX year string was passed to dob argument")
+        raise ValueError
+    print('Constructor test 3 passed')
+    return dog_class
+
+
+def test_class_attrs_4(Dog):
+    dog_class = test_class_constructor_3(Dog)
+    if dog_class._dob == date(2022, 3, 4):
+        print("Your class correctly converted the dob string to a datetime object")
+    else:
+        print("Your class failed to convert the dob string to a datetime object")
+
+    if dog_class.age == (date.today() - date(2022, 3, 4)).days // 365:
+        print("Your class correctly calculated the age of the dog")
+    else:
+        print("Your class failed to calculate the age of the dog")
+
+    old_dog = Dog(
+        name="Milo", owner="Cassandra", dob="03/04/93", sex="Dog", color="Brown",
+        tricks=['Sit', 'Paw'], date_format='mm/dd/yy'
+        )
+    if old_dog.age == (date.today() - date(1193, 3, 4)).days // 365:
+        print("Your class correctly calculated the age of the old dog")
+    else:
+        print("Your class failed to calculate the age of the old (born before 2000) dog")
+
+
+def test_breed_combo(Dog):
+    # This function cycles though some combinations of breeds and checks that the breed attribute is set correctly.
+
+    # Test 1
+    dog_male = Dog(name="Rex", owner="Cassandra", dob="15/02/2020", sex="Dog", color="Brown", tricks=['Sit', 'Paw'], breed=("Labrador",))
+    dog_female = Dog(name="Daisy", owner="Cassandra", dob="15/12/2019", sex="Bitch", color="Black", tricks=['Sit', 'Paw'], breed=("Poodle",))
+
+    dog_with_parents = Dog(name="Milo", owner="Cassandra", dob="03/04/2022", sex="Dog", color="Brown", tricks=['Sit', 'Paw'], parents=(dog_male, dog_female))
+
+    if not (dog_with_parents.breed != ("Labrador", "Poodle", ) or dog_with_parents.breed != ("Poodle", "Labrador", )):
+        print("Failure with two purebred parents (different breeds)")
+    
+    # Test 2
+    dog_male = Dog(name="Rex", owner="Cassandra", dob="15/02/2020", sex="Dog", color="Brown", tricks=['Sit', 'Paw'], breed=("Labrador",))
+    dog_female = Dog(name="Daisy", owner="Cassandra", dob="15/12/2019", sex="Bitch", color="Black", tricks=['Sit', 'Paw'], breed=("Labrador",))
+
+    dog_with_parents = Dog(name="Milo", owner="Cassandra", dob="03/04/2022", sex="Dog", color="Brown", tricks=['Sit', 'Paw'], parents=(dog_male, dog_female))
+
+    if dog_with_parents.breed != ("Labrador",):
+        print("Failure with two purebred parents (same breed)")
+     
+    # Test 3a
+    dog_male = Dog(name="Rex", owner="Cassandra", dob="15/02/2020", sex="Dog", color="Brown", tricks=['Sit', 'Paw'], breed=("Labrador",))
+    dog_female = Dog(name="Daisy", owner="Cassandra", dob="15/12/2019", sex="Bitch", color="Black", tricks=['Sit', 'Paw'], breed=("Poodle", "Shitzu"))
+
+    dog_with_parents = Dog(name="Milo", owner="Cassandra", dob="03/04/2022", sex="Dog", color="Brown", tricks=['Sit', 'Paw'], parents=(dog_male, dog_female))
+
+    if set(dog_with_parents.breed) != set(("Labrador", "Labrador", "Poodle", "Shitzu")):
+        print("Failure with one purebred parent one cross")
+    
+    # Test 3b
+    dog_male = Dog(name="Rex", owner="Cassandra", dob="15/02/2020", sex="Dog", color="Brown", tricks=['Sit', 'Paw'], breed=("Labrador", "Shitzu"))
+    dog_female = Dog(name="Daisy", owner="Cassandra", dob="15/12/2019", sex="Bitch", color="Black", tricks=['Sit', 'Paw'], breed=("Poodle",))
+
+    dog_with_parents = Dog(name="Milo", owner="Cassandra", dob="03/04/2022", sex="Dog", color="Brown", tricks=['Sit', 'Paw'], parents=(dog_male, dog_female))
+
+    if set(dog_with_parents.breed) != set(("Labrador", "Poodle", "Poodle", "Shitzu")):
+        print("Failure with one purebred parent one cross")
+
+    # Test 4
+    dog_male = Dog(name="Rex", owner="Cassandra", dob="15/02/2020", sex="Dog", color="Brown", tricks=['Sit', 'Paw'], breed=("Labrador", "Shitzu"))
+    dog_female = Dog(name="Daisy", owner="Cassandra", dob="15/12/2019", sex="Bitch", color="Black", tricks=['Sit', 'Paw'], breed=("Poodle", "Pug"))
+
+    dog_with_parents = Dog(name="Milo", owner="Cassandra", dob="03/04/2022", sex="Dog", color="Brown", tricks=['Sit', 'Paw'], parents=(dog_male, dog_female))
+
+    if set(dog_with_parents.breed) != set(("Labrador", "Pug", "Poodle", "Shitzu")):
+        print("Failure with two crossbreed parents")
+    
+    # Test 5
+    dog_male = Dog(name="Rex", owner="Cassandra", dob="15/02/2020", sex="Dog", color="Brown", tricks=['Sit', 'Paw'], breed=("Labrador", "Shitzu", "Whippet", "Whippet"))
+    dog_female = Dog(name="Daisy", owner="Cassandra", dob="15/12/2019", sex="Bitch", color="Black", tricks=['Sit', 'Paw'], breed=("Poodle", "Pug"))
+
+    dog_with_parents = Dog(name="Milo", owner="Cassandra", dob="03/04/2022", sex="Dog", color="Brown", tricks=['Sit', 'Paw'], parents=(dog_male, dog_female))
+
+    if dog_with_parents.breed != ("Mutt",):
+        print("Failure to create Mutt")
+
+    # Test 6a
+    dog_female_a = Dog(name="Willow", owner="Cassandra", dob="15/02/2020", sex="Bitch", color="Brown", tricks=['Sit', 'Paw'], breed=("Labrador", "Shitzu", "Whippet", "Whippet"))
+    dog_female_b = Dog(name="Daisy", owner="Cassandra", dob="15/12/2019", sex="Bitch", color="Black", tricks=['Sit', 'Paw'], breed=("Poodle", "Pug"))
+
+    try:
+        dog_with_parents = Dog(name="Milo", owner="Cassandra", dob="03/04/2022", sex="Dog", color="Brown", tricks=['Sit', 'Paw'], parents=(dog_female_a, dog_female_b))
+    except AssertionError:
+        pass
+    else:
+        print("Failed to assert parents had different sexes")
+    # Test 6b
+    dog_male_a = Dog(name="Willow", owner="Cassandra", dob="15/02/2020", sex="Dog", color="Brown", tricks=['Sit', 'Paw'], breed=("Labrador", "Shitzu", "Whippet", "Whippet"))
+    dog_male_b = Dog(name="Daisy", owner="Cassandra", dob="15/12/2019", sex="Dog", color="Black", tricks=['Sit', 'Paw'], breed=("Poodle", "Pug"))
+
+    try:
+        dog_with_parents = Dog(name="Milo", owner="Cassandra", dob="03/04/2022", sex="Dog", color="Brown", tricks=['Sit', 'Paw'], parents=(dog_male_a, dog_male_b))
+    except AssertionError:
+        pass
+    else:
+        print("Failed to assert parents had different sexes")
+
+    print("All tests Passed")
