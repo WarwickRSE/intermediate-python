@@ -1,6 +1,85 @@
 # Like `def` for functions, `class` is a keyword for classes.
 from datetime import date
+from random import seed, randint
 
+# A set of dog colors to choose from.
+dog_colors = {
+    "Black",
+    "White",
+    "Brown",
+    "Red",
+    "Golden",
+    "Yellow",
+    "Cream",
+    "Gray",
+    "Blue",
+    "Silver",
+    "Fawn",
+    "Brindle",
+    "Spotted",
+    "Merle",
+    "Sable",
+    "Tan",
+    "Blonde",
+    "Chocolate",
+    "Liver",
+    "Orange",
+    "Buff",
+    "Tricolor",
+    "Bicolor",
+}
+dog_names = {
+    "m": {
+        "Buddy",
+        "Max",
+        "Charlie",
+        "Jack",
+        "Cooper",
+        "Rocky",
+        "Toby",
+        "Tucker",
+        "Jake",
+        "Bear",
+        "Duke",
+        "Teddy",
+        "Oliver",
+        "Riley",
+        "Bailey",
+        "Bentley",
+        "Milo",
+        "Buster",
+        "Cody",
+        "Dexter",
+        "Winston",
+        "Murphy",
+        "Leo",
+    },
+    "f": {
+        "Bella",
+        "Lucy",
+        "Luna",
+        "Daisy",
+        "Lola",
+        "Sadie",
+        "Molly",
+        "Maggie",
+        "Bailey",
+        "Sophie",
+        "Chloe",
+        "Stella",
+        "Lily",
+        "Penny",
+        "Zoey",
+        "Coco",
+        "Roxy",
+        "Gracie",
+        "Mia",
+        "Nala",
+        "Ruby",
+        "Rosie",
+        "Ellie",
+    },
+}
 
 class TestDog:  # Usually class names are capitalized.
     # The `__init__` method is the constructor.
@@ -48,7 +127,7 @@ class TestDog:  # Usually class names are capitalized.
 
         if tricks is None:
             # If no tricks supplied, set to empty set.
-            self.tricks = set([])
+            self._tricks = set([])
         else:
             if type(tricks) is str:
                 # If only one trick supplied, set to set with one element.
@@ -94,6 +173,28 @@ class TestDog:  # Usually class names are capitalized.
                     self._breed = ("Mutt",)
             else:
                 self._breed = parents[0].breed + parents[1].breed
+
+    # Overload add operator so when combined with another dog,
+    # a litter of puppies is born.
+    def __add__(self, other):
+        # Check that other is a dog and of opposite sex
+        assert isinstance(other, type(self)), "Can only add two dogs."
+        assert self.sex != other.sex, "Dogs must have different sexes."
+        # Select random number of puppies between 1 and 10
+        num_pups = randint(1, 10)
+        puppies = []
+        for _ in range(num_pups):
+            # Create a new dog for each puppy
+            # Provide a random name and color for each puppy, assume owner is 
+            # the same and dob is today
+            # Provide parents for automatic breed determination
+            sex = list(["m", "f"])[randint(0, 1)]
+            name = list(dog_names[sex])[randint(0, len(dog_names)-1)]
+            color = list(dog_colors)[randint(0, len(dog_colors)-1)]
+
+            puppies.append(TestDog(name, self.owner, sex, date.today(), color,
+                           parents=(self, other)))
+        return puppies
 
     @property
     def sex(self):
